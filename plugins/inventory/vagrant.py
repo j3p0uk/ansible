@@ -104,7 +104,7 @@ if options.list:
     hosts = { 'vagrant': []}
 
     for data in ssh_config:
-        hosts['vagrant'].append(data['HostName'])
+        hosts['vagrant'].append(data['Host'])
 
     print json.dumps(hosts)
     sys.exit(1)
@@ -112,14 +112,16 @@ if options.list:
 # Get out the host details
 #------------------------------
 elif options.host:
-    result = {}
-    ssh_config = get_ssh_config()
+    result = get_a_ssh_config(options.host)
 
-    details = filter(lambda x: (x['HostName'] == options.host), ssh_config)
-    if len(details) > 0:
-        #pass through the port, in case it's non standard.
-        result = details[0]
-        result['ansible_ssh_port'] = result['Port']
+    # Pass through the port, in case it's non standard.
+    result['ansible_ssh_port'] = result['Port']
+    # Pass through the IP address of the host, for ssh connection
+    result['ansible_ssh_host'] = result['HostName']
+    # Pass through the ssh private key that vagrant assigns to the machine
+    result['ansible_ssh_private_key_file'] = result['IdentityFile']
+    # Pass through the ssh user to connect with
+    result['ansible_ssh_user'] = result['User']
 
     print json.dumps(result)
     sys.exit(1)
